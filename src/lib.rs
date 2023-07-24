@@ -1,6 +1,7 @@
 pub mod config;
 pub mod db;
 mod router;
+pub mod types;
 
 use std::net::SocketAddr;
 
@@ -11,7 +12,7 @@ use router::create_router;
 pub async fn run(config: AppConfig) -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let router = create_router();
+    let router = create_router(config.clone());
     let address = SocketAddr::from((config.address, config.port));
 
     tracing::info!("Server running on port {}", config.port);

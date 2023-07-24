@@ -1,3 +1,5 @@
+pub mod author_queries;
+
 use dotenvy_macro::dotenv;
 use eyre::Result;
 use sea_orm::{Database, DatabaseConnection};

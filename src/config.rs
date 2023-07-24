@@ -2,6 +2,7 @@ use crate::db::connect;
 use eyre::Result;
 use sea_orm::DatabaseConnection;
 
+#[derive(Clone)]
 pub struct AppConfig {
     pub address: [u8; 4],
     pub port: u16,
