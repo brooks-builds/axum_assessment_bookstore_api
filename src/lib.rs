@@ -1,4 +1,5 @@
 pub mod config;
+pub mod db;
 mod router;
 
 use std::net::SocketAddr;

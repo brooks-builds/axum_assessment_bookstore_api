@@ -1,19 +1,19 @@
+use crate::db::connect;
+use eyre::Result;
+use sea_orm::DatabaseConnection;
+
 pub struct AppConfig {
     pub address: [u8; 4],
     pub port: u16,
+    pub db: DatabaseConnection,
 }
 
 impl AppConfig {
-    pub fn new() -> Self {
+    pub async fn new() -> Result<Self> {
         let address = [127, 0, 0, 1];
         let port = 3000;
+        let db = connect().await?;
 
-        Self { address, port }
-    }
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self::new()
+        Ok(Self { address, port, db })
     }
 }
