@@ -1,6 +1,10 @@
 mod types;
 
-use crate::types::{CreateAuthor, CreateAuthorResponse};
+use crate::types::CreateAuthor;
+use axum_assessment_bookstore_api::{
+    db::{author_queries::get_author_by_id, connect},
+    types::author::Author,
+};
 use eyre::Result;
 use reqwest::Client;
 
@@ -14,10 +18,15 @@ async fn create_an_author() -> Result<()> {
     let response = client.post(url).json(&new_author).send().await?;
     let status = response.status();
     let expected_status = 201;
+    let db = connect().await?;
 
     assert_eq!(status, expected_status);
 
-    let created_author = response.json::<CreateAuthorResponse>().await?;
+    let created_author = response.json::<Author>().await?;
+
+    let author_in_db = get_author_by_id(created_author.id, &db).await?;
+
+    assert_eq!(author_in_db, Some(created_author));
 
     Ok(())
 }
