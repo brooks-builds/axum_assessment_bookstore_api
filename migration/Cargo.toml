@@ -12,6 +12,8 @@ path = "src/lib.rs"
 async-std = { version = "1", features = ["attributes", "tokio1"] }
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
+eyre = "0.6.8"
+entity = { path = "../entity" }
 
 [dependencies.sea-orm-migration]
 version = "0.11.0"

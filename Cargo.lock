@@ -1268,6 +1268,8 @@ dependencies = [
  "async-std",
  "dotenvy",
  "dotenvy_macro",
+ "entity",
+ "eyre",
  "sea-orm-migration",
 ]
 
