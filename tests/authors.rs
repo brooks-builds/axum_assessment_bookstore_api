@@ -1,6 +1,7 @@
 mod types;
 
 use crate::types::CreateAuthor;
+use axum::http::StatusCode;
 use axum_assessment_bookstore_api::{
     db::{author_queries::get_author_by_id, connect},
     types::author::Author,
@@ -32,8 +33,13 @@ async fn create_an_author() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "todo"]
 async fn get_one_author_with_their_books() -> Result<()> {
+    let author_id = 1;
+    let url = format!("{BASE_URL}/authors/{author_id}");
+    let response = reqwest::get(url).await?;
+    let status = response.status();
+
+    assert_eq!(status, StatusCode::OK);
     Ok(())
 }
 
