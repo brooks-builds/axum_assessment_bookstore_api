@@ -34,7 +34,7 @@ async fn create_an_author() -> Result<()> {
 
 #[tokio::test]
 async fn get_one_author_with_their_books() -> Result<()> {
-    let author_id = 1;
+    let author_id = 2;
     let url = format!("{BASE_URL}/authors/{author_id}");
     let response = reqwest::get(url).await?;
     let status = response.status();

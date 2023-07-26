@@ -1,4 +1,4 @@
-use entity::authors;
+use entity::{authors, books};
 use eyre::Result;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, TryIntoModel};
 
@@ -21,8 +21,19 @@ pub async fn insert_author(
 }
 
 pub async fn get_author_by_id(id: i32, db: &DatabaseConnection) -> Result<Option<Author>> {
-    Ok(authors::Entity::find_by_id(id)
-        .one(db)
-        .await?
-        .map(Into::into))
+    let authors = authors::Entity::find_by_id(id)
+        .find_with_related(books::Entity)
+        .all(db)
+        .await?;
+
+    if authors.is_empty() {
+        return Ok(None);
+    }
+
+    let (author, books) = &authors[0];
+
+    tracing::debug!("author: {author:?}");
+    tracing::debug!("books: {books:?}");
+
+    todo!()
 }

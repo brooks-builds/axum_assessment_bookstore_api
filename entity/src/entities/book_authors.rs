@@ -11,7 +11,25 @@ pub struct Model {
     pub book_id: i32,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+#[derive(Copy, Clone, Debug, EnumIter)]
+pub enum Relation {
+    Books,
+    Authors,
+}
+
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        match self {
+            Relation::Books => Entity::belongs_to(super::books::Entity)
+                .from(Column::BookId)
+                .to(super::books::Column::Id)
+                .into(),
+            Relation::Authors => Entity::belongs_to(super::authors::Entity)
+                .from(Column::AuthorId)
+                .to(super::authors::Column::Id)
+                .into(),
+        }
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
