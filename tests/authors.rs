@@ -119,8 +119,8 @@ async fn get_all_authors_with_their_books() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "todo"]
 async fn update_an_author() -> Result<()> {
+    todo!();
     Ok(())
 }
 
