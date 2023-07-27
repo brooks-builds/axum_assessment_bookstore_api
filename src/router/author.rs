@@ -7,7 +7,7 @@ use axum::{
 
 use crate::{
     config::AppConfig,
-    db::author_queries::{get_author_by_id, insert_author},
+    db::author_queries::{self, get_author_by_id, insert_author},
     types::{
         author::{Author, CreateAuthorJson},
         ResponseObject,
@@ -42,4 +42,18 @@ pub async fn get_one_author(
     };
 
     Ok(Json(ResponseObject::new_ok(author)))
+}
+
+pub async fn get_all_authors(
+    state: State<AppConfig>,
+) -> Result<Json<ResponseObject<Vec<Author>>>, Json<ResponseObject<()>>> {
+    match author_queries::get_all_authors(&state.db).await {
+        Ok(authors) => Ok(Json(ResponseObject::new_ok(Some(authors)))),
+        Err(error) => {
+            tracing::error!("Error getting all authors: {error}");
+            Err(Json(ResponseObject::new_internal_error(
+                "there was an error getting all authors",
+            )))
+        }
+    }
 }

@@ -41,3 +41,19 @@ pub async fn get_author_by_id(id: i32, db: &DatabaseConnection) -> Result<Option
 
     Ok(Some(author))
 }
+
+pub async fn get_all_authors(db: &DatabaseConnection) -> Result<Vec<Author>> {
+    let db_authors = authors::Entity::find()
+        .find_with_related(books::Entity)
+        .all(db)
+        .await?;
+
+    Ok(db_authors
+        .into_iter()
+        .map(|(db_author, db_books)| {
+            let mut author = Author::from(&db_author);
+            author.books = db_books.iter().map(Into::into).collect();
+            author
+        })
+        .collect())
+}

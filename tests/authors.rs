@@ -62,8 +62,59 @@ async fn get_one_author_with_their_books() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "todo"]
-async fn get_all_authors() -> Result<()> {
+async fn get_all_authors_with_their_books() -> Result<()> {
+    let url = format!("{BASE_URL}/authors");
+    let response = reqwest::get(url).await?;
+    let status = response.status();
+
+    assert_eq!(status, StatusCode::OK);
+
+    let authors = response
+        .json::<ResponseObject<Vec<Author>>>()
+        .await?
+        .data
+        .unwrap();
+
+    let mut authors = authors
+        .into_iter()
+        .filter(|author| author.id <= 3)
+        .collect::<Vec<Author>>();
+    authors.sort_by(|a, b| a.id.partial_cmp(&b.id).unwrap());
+    let expected_authors = vec![
+        Author {
+            id: 1,
+            name: "Unpublished".to_owned(),
+            books: vec![],
+        },
+        Author {
+            id: 2,
+            name: "One Book".to_owned(),
+            books: vec![Book {
+                name: "Free Book".to_owned(),
+                price: 0,
+                in_stock: true,
+            }],
+        },
+        Author {
+            id: 3,
+            name: "Multiple Books".to_owned(),
+            books: vec![
+                Book {
+                    name: "Expensive Book".to_owned(),
+                    price: 10000,
+                    in_stock: true,
+                },
+                Book {
+                    name: "Unavailable Book".to_owned(),
+                    price: 1400,
+                    in_stock: false,
+                },
+            ],
+        },
+    ];
+
+    assert_eq!(authors, expected_authors);
+
     Ok(())
 }
 
