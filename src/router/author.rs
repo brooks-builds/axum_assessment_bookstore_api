@@ -8,7 +8,10 @@ use axum::{
 use crate::{
     config::AppConfig,
     db::author_queries::{get_author_by_id, insert_author},
-    types::author::CreateAuthorJson,
+    types::{
+        author::{Author, CreateAuthorJson},
+        ResponseObject,
+    },
 };
 
 pub async fn create_author(
@@ -24,7 +27,19 @@ pub async fn create_author(
     Ok((StatusCode::CREATED, Json(author)))
 }
 
-pub async fn get_one_author(state: State<AppConfig>, Path(id): Path<i32>) {
-    let author = get_author_by_id(id, &state.db).await.unwrap();
-    tracing::debug!("Got author: {author:?}")
+pub async fn get_one_author(
+    state: State<AppConfig>,
+    Path(id): Path<i32>,
+) -> Result<Json<ResponseObject<Author>>, Json<ResponseObject<()>>> {
+    let author = match get_author_by_id(id, &state.db).await {
+        Ok(author) => author,
+        Err(error) => {
+            tracing::error!("Error getting author by id: {error}");
+            return Err(Json(ResponseObject::new_internal_error(
+                "There was an error getting the author",
+            )));
+        }
+    };
+
+    Ok(Json(ResponseObject::new_ok(author)))
 }

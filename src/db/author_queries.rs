@@ -2,7 +2,10 @@ use entity::{authors, books};
 use eyre::Result;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, TryIntoModel};
 
-use crate::types::author::{Author, CreateAuthorJson};
+use crate::types::{
+    author::{Author, CreateAuthorJson},
+    book::Book,
+};
 
 pub async fn insert_author(
     create_author: CreateAuthorJson,
@@ -17,6 +20,7 @@ pub async fn insert_author(
     Ok(Author {
         id: created_author.id,
         name: created_author.name,
+        books: vec![],
     })
 }
 
@@ -31,9 +35,9 @@ pub async fn get_author_by_id(id: i32, db: &DatabaseConnection) -> Result<Option
     }
 
     let (author, books) = &authors[0];
+    let books = books.iter().map(Into::into).collect::<Vec<Book>>();
+    let mut author = Author::from(author);
+    author.books = books;
 
-    tracing::debug!("author: {author:?}");
-    tracing::debug!("books: {books:?}");
-
-    todo!()
+    Ok(Some(author))
 }

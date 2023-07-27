@@ -4,7 +4,7 @@ use crate::types::CreateAuthor;
 use axum::http::StatusCode;
 use axum_assessment_bookstore_api::{
     db::{author_queries::get_author_by_id, connect},
-    types::author::Author,
+    types::{author::Author, book::Book, ResponseObject},
 };
 use eyre::Result;
 use reqwest::Client;
@@ -40,6 +40,24 @@ async fn get_one_author_with_their_books() -> Result<()> {
     let status = response.status();
 
     assert_eq!(status, StatusCode::OK);
+
+    let author = response
+        .json::<ResponseObject<Author>>()
+        .await?
+        .data
+        .unwrap();
+    let expected_author = Author {
+        id: 2,
+        name: "One Book".to_owned(),
+        books: vec![Book {
+            name: "Free Book".to_owned(),
+            price: 0,
+            in_stock: true,
+        }],
+    };
+
+    assert_eq!(author, expected_author);
+
     Ok(())
 }
 
