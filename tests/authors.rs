@@ -1,6 +1,6 @@
 mod types;
 
-use crate::types::CreateAuthor;
+use crate::types::{CreateAuthor, TestBook};
 use axum::http::StatusCode;
 use axum_assessment_bookstore_api::{
     db::{author_queries::get_author_by_id, connect},
@@ -32,6 +32,7 @@ async fn get_one_author_with_their_books() -> Result<()> {
         id: 2,
         name: "One Book".to_owned(),
         books: vec![Book {
+            id: 1,
             name: "Free Book".to_owned(),
             price: 0,
             in_stock: true,
@@ -72,6 +73,7 @@ async fn get_all_authors_with_their_books() -> Result<()> {
             id: 2,
             name: "One Book".to_owned(),
             books: vec![Book {
+                id: 1,
                 name: "Free Book".to_owned(),
                 price: 0,
                 in_stock: true,
@@ -82,11 +84,13 @@ async fn get_all_authors_with_their_books() -> Result<()> {
             name: "Multiple Books".to_owned(),
             books: vec![
                 Book {
+                    id: 2,
                     name: "Expensive Book".to_owned(),
                     price: 10000,
                     in_stock: true,
                 },
                 Book {
+                    id: 3,
                     name: "Unavailable Book".to_owned(),
                     price: 1400,
                     in_stock: false,
@@ -118,8 +122,21 @@ async fn update_an_author() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "todo"]
 async fn associate_author_with_book() -> Result<()> {
+    let mut new_author = CreateAuthor::new_random();
+    new_author.create_in_api().await?;
+
+    let mut new_book = TestBook::new_random();
+    new_book.create_in_api().await?;
+
+    new_author.associate_with_book(&new_book).await?;
+    new_author.reload_from_api().await?;
+
+    let author_books = new_author.saved.unwrap().data.unwrap().books;
+
+    assert!(author_books.len() == 1);
+    assert_eq!(author_books[0], new_book.api_book.unwrap());
+
     Ok(())
 }
 

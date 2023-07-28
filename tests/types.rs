@@ -1,7 +1,12 @@
 use axum::http::StatusCode;
-use axum_assessment_bookstore_api::types::{author::Author, ResponseObject};
+use axum_assessment_bookstore_api::types::{
+    author::Author, book::Book, book_author::CreateBookAuthor, ResponseObject,
+};
 use eyre::Result;
-use rand::distributions::{Alphanumeric, DistString};
+use rand::{
+    distributions::{Alphanumeric, DistString},
+    Rng,
+};
 use serde::{Deserialize, Serialize};
 
 const BASE_URL: &str = "http://localhost:3000";
@@ -71,6 +76,58 @@ impl CreateAuthor {
         let url = format!("{BASE_URL}/authors/{author_id}");
         let response = reqwest::get(url).await?;
         self.saved = response.json().await?;
+
+        Ok(())
+    }
+
+    pub async fn associate_with_book(&self, book: &TestBook) -> Result<()> {
+        let author_id = self.saved.as_ref().unwrap().data.as_ref().unwrap().id;
+        let book_id = book.api_book.as_ref().unwrap().id;
+        let url = format!("{BASE_URL}/book_authors");
+        let book_author = CreateBookAuthor { author_id, book_id };
+        let client = reqwest::Client::new();
+        let response = client.post(url).json(&book_author).send().await?;
+
+        assert_eq!(response.status(), 201);
+
+        Ok(())
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TestBook {
+    #[serde(skip)]
+    pub api_book: Option<Book>,
+    pub name: String,
+    pub price: i32,
+    pub in_stock: bool,
+}
+
+impl TestBook {
+    pub fn new_random() -> Self {
+        let mut rng = rand::thread_rng();
+        let name = Alphanumeric.sample_string(&mut rng, 8);
+        let price = rng.gen_range(0..10000);
+        let in_stock = rng.gen_bool(0.5);
+
+        Self {
+            api_book: None,
+            name,
+            price,
+            in_stock,
+        }
+    }
+
+    pub async fn create_in_api(&mut self) -> Result<()> {
+        let url = format!("{BASE_URL}/books");
+        let client = reqwest::Client::new();
+        let response = client.post(url).json(&self).send().await?;
+
+        assert_eq!(response.status(), 201);
+
+        let response_data = response.json::<ResponseObject<Book>>().await?;
+
+        self.api_book = response_data.data;
 
         Ok(())
     }
