@@ -1,6 +1,8 @@
 use entity::{authors, books};
-use eyre::Result;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, TryIntoModel};
+use eyre::{bail, Result};
+use sea_orm::{
+    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set, TryIntoModel,
+};
 
 use crate::types::{
     author::{Author, CreateAuthorJson},
@@ -56,4 +58,16 @@ pub async fn get_all_authors(db: &DatabaseConnection) -> Result<Vec<Author>> {
             author
         })
         .collect())
+}
+
+pub async fn update_author(db: &DatabaseConnection, author_id: i32, name: String) -> Result<()> {
+    let Some(db_author )= authors::Entity::find_by_id(author_id).one(db).await? else {
+        bail!("not_found");
+    };
+    let mut active_db_author = db_author.into_active_model();
+
+    active_db_author.name = Set(name);
+    active_db_author.save(db).await?;
+
+    Ok(())
 }

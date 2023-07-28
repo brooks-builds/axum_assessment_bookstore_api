@@ -10,7 +10,7 @@ use crate::{
     db::author_queries::{self, get_author_by_id, insert_author},
     types::{
         author::{Author, CreateAuthorJson},
-        ResponseObject,
+        EmptyResponse, ResponseObject,
     },
 };
 
@@ -24,7 +24,10 @@ pub async fn create_author(
             tracing::error!("Error inserting author: {error}");
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
-    Ok((StatusCode::CREATED, Json(author)))
+    Ok((
+        StatusCode::CREATED,
+        Json(ResponseObject::new_created(author)),
+    ))
 }
 
 pub async fn get_one_author(
@@ -54,6 +57,27 @@ pub async fn get_all_authors(
             Err(Json(ResponseObject::new_internal_error(
                 "there was an error getting all authors",
             )))
+        }
+    }
+}
+
+pub async fn update_author(
+    state: State<AppConfig>,
+    Path(id): Path<i32>,
+    Json(update_author): Json<CreateAuthorJson>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
+    match author_queries::update_author(&state.db, id, update_author.name).await {
+        Ok(_) => Ok(StatusCode::NO_CONTENT),
+        Err(error) => {
+            if error.root_cause().to_string() == "not_found" {
+                Err((StatusCode::OK, Json(ResponseObject::new_ok(None))))
+            } else {
+                tracing::error!("error updating author: {error}");
+                Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ResponseObject::new_internal_error("Error updating author")),
+                ))
+            }
         }
     }
 }

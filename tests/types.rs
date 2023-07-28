@@ -1,9 +1,16 @@
+use axum::http::StatusCode;
+use axum_assessment_bookstore_api::types::{author::Author, ResponseObject};
+use eyre::Result;
 use rand::distributions::{Alphanumeric, DistString};
 use serde::{Deserialize, Serialize};
 
+const BASE_URL: &str = "http://localhost:3000";
+
 #[derive(Serialize, Deserialize)]
 pub struct CreateAuthor {
-    name: String,
+    pub name: String,
+    #[serde(skip)]
+    pub saved: Option<ResponseObject<Author>>,
 }
 
 impl CreateAuthor {
@@ -11,6 +18,60 @@ impl CreateAuthor {
         let mut rng = rand::thread_rng();
         let name = Alphanumeric.sample_string(&mut rng, 8);
 
-        Self { name }
+        Self { name, saved: None }
+    }
+
+    pub async fn new_get_from_api(author_id: i32) -> Result<Self> {
+        let url = format!("{BASE_URL}/authors/{author_id}");
+        let response = reqwest::get(url).await?;
+        let status = response.status();
+
+        assert_eq!(status, StatusCode::OK);
+
+        let saved = response.json::<ResponseObject<Author>>().await?;
+        let name = saved.data.as_ref().unwrap().name.clone();
+
+        Ok(Self {
+            name,
+            saved: Some(saved),
+        })
+    }
+
+    pub fn change_name(&mut self) {
+        let mut rng = rand::thread_rng();
+        self.name = Alphanumeric.sample_string(&mut rng, 8);
+    }
+
+    pub async fn create_in_api(&mut self) -> Result<()> {
+        let url = format!("{BASE_URL}/authors");
+        let client = reqwest::Client::new();
+        let response = client.post(url).json(&self).send().await?;
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+
+        self.saved = response.json().await?;
+
+        Ok(())
+    }
+
+    pub async fn update_in_api(&mut self) -> Result<()> {
+        let author_id = self.saved.as_ref().unwrap().data.as_ref().unwrap().id;
+        let url = format!("{BASE_URL}/authors/{author_id}");
+        let client = reqwest::Client::new();
+        let response = client.put(url).json(&self).send().await?;
+        let status = response.status();
+
+        assert_eq!(status, StatusCode::NO_CONTENT);
+
+        Ok(())
+    }
+
+    pub async fn reload_from_api(&mut self) -> Result<()> {
+        let author_id = self.saved.as_ref().unwrap().data.as_ref().unwrap().id;
+        let url = format!("{BASE_URL}/authors/{author_id}");
+        let response = reqwest::get(url).await?;
+        self.saved = response.json().await?;
+
+        Ok(())
     }
 }

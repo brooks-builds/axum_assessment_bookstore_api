@@ -7,45 +7,27 @@ use axum_assessment_bookstore_api::{
     types::{author::Author, book::Book, ResponseObject},
 };
 use eyre::Result;
-use reqwest::Client;
 
 const BASE_URL: &str = "http://localhost:3000";
 
 #[tokio::test]
 async fn create_an_author() -> Result<()> {
-    let new_author = CreateAuthor::new_random();
-    let url = format!("{BASE_URL}/authors");
-    let client = Client::new();
-    let response = client.post(url).json(&new_author).send().await?;
-    let status = response.status();
-    let expected_status = 201;
+    let mut new_author = CreateAuthor::new_random();
+
+    new_author.create_in_api().await?;
+
     let db = connect().await?;
+    let author_in_db =
+        get_author_by_id(new_author.saved.clone().unwrap().data.unwrap().id, &db).await?;
 
-    assert_eq!(status, expected_status);
-
-    let created_author = response.json::<Author>().await?;
-
-    let author_in_db = get_author_by_id(created_author.id, &db).await?;
-
-    assert_eq!(author_in_db, Some(created_author));
+    assert_eq!(author_in_db, new_author.saved.unwrap().data);
 
     Ok(())
 }
 
 #[tokio::test]
 async fn get_one_author_with_their_books() -> Result<()> {
-    let author_id = 2;
-    let url = format!("{BASE_URL}/authors/{author_id}");
-    let response = reqwest::get(url).await?;
-    let status = response.status();
-
-    assert_eq!(status, StatusCode::OK);
-
-    let author = response
-        .json::<ResponseObject<Author>>()
-        .await?
-        .data
-        .unwrap();
+    let author = CreateAuthor::new_get_from_api(2).await?;
     let expected_author = Author {
         id: 2,
         name: "One Book".to_owned(),
@@ -56,7 +38,7 @@ async fn get_one_author_with_their_books() -> Result<()> {
         }],
     };
 
-    assert_eq!(author, expected_author);
+    assert_eq!(author.saved.unwrap().data.unwrap(), expected_author);
 
     Ok(())
 }
@@ -120,7 +102,18 @@ async fn get_all_authors_with_their_books() -> Result<()> {
 
 #[tokio::test]
 async fn update_an_author() -> Result<()> {
-    todo!();
+    let mut new_author = CreateAuthor::new_random();
+
+    new_author.create_in_api().await?;
+    new_author.change_name();
+    new_author.update_in_api().await?;
+    new_author.reload_from_api().await?;
+
+    assert_eq!(
+        new_author.name,
+        new_author.saved.unwrap().data.unwrap().name
+    );
+
     Ok(())
 }
 

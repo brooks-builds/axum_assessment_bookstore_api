@@ -1,7 +1,7 @@
 use entity::books::Model;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Book {
     pub name: String,
     pub price: i32,
