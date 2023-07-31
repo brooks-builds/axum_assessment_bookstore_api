@@ -1,7 +1,7 @@
 pub mod config;
 pub mod db;
+pub mod models;
 mod router;
-pub mod types;
 
 use std::net::SocketAddr;
 

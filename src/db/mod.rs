@@ -1,4 +1,6 @@
 pub mod author_queries;
+pub mod book_author_queries;
+pub mod book_queries;
 
 use dotenvy_macro::dotenv;
 use eyre::Result;

@@ -1,10 +1,10 @@
-mod types;
+mod models;
 
-use crate::types::{CreateAuthor, TestBook};
+use crate::models::{CreateAuthor, TestBook};
 use axum::http::StatusCode;
 use axum_assessment_bookstore_api::{
     db::{author_queries::get_author_by_id, connect},
-    types::{author::Author, book::Book, ResponseObject},
+    models::{author::Author, book::Book, ResponseObject},
 };
 use eyre::Result;
 
@@ -32,10 +32,10 @@ async fn get_one_author_with_their_books() -> Result<()> {
         id: 2,
         name: "One Book".to_owned(),
         books: vec![Book {
-            id: 1,
-            name: "Free Book".to_owned(),
-            price: 0,
-            in_stock: true,
+            id: Some(1),
+            name: Some("Free Book".to_owned()),
+            price: Some(0),
+            in_stock: Some(true),
         }],
     };
 
@@ -73,10 +73,10 @@ async fn get_all_authors_with_their_books() -> Result<()> {
             id: 2,
             name: "One Book".to_owned(),
             books: vec![Book {
-                id: 1,
-                name: "Free Book".to_owned(),
-                price: 0,
-                in_stock: true,
+                id: Some(1),
+                name: Some("Free Book".to_owned()),
+                price: Some(0),
+                in_stock: Some(true),
             }],
         },
         Author {
@@ -84,16 +84,16 @@ async fn get_all_authors_with_their_books() -> Result<()> {
             name: "Multiple Books".to_owned(),
             books: vec![
                 Book {
-                    id: 2,
-                    name: "Expensive Book".to_owned(),
-                    price: 10000,
-                    in_stock: true,
+                    id: Some(2),
+                    name: Some("Expensive Book".to_owned()),
+                    price: Some(10000),
+                    in_stock: Some(true),
                 },
                 Book {
-                    id: 3,
-                    name: "Unavailable Book".to_owned(),
-                    price: 1400,
-                    in_stock: false,
+                    id: Some(3),
+                    name: Some("Unavailable Book".to_owned()),
+                    price: Some(1400),
+                    in_stock: Some(false),
                 },
             ],
         },

@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
-use axum_assessment_bookstore_api::types::{
-    author::Author, book::Book, book_author::CreateBookAuthor, ResponseObject,
+use axum_assessment_bookstore_api::models::{
+    author::Author, book::Book, book_author::BookAuthor, ResponseObject,
 };
 use eyre::Result;
 use rand::{
@@ -82,9 +82,9 @@ impl CreateAuthor {
 
     pub async fn associate_with_book(&self, book: &TestBook) -> Result<()> {
         let author_id = self.saved.as_ref().unwrap().data.as_ref().unwrap().id;
-        let book_id = book.api_book.as_ref().unwrap().id;
+        let book_id = book.api_book.as_ref().unwrap().id.unwrap();
         let url = format!("{BASE_URL}/book_authors");
-        let book_author = CreateBookAuthor { author_id, book_id };
+        let book_author = BookAuthor { author_id, book_id };
         let client = reqwest::Client::new();
         let response = client.post(url).json(&book_author).send().await?;
 

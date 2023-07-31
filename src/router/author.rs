@@ -8,7 +8,7 @@ use axum::{
 use crate::{
     config::AppConfig,
     db::author_queries::{self, get_author_by_id, insert_author},
-    types::{
+    models::{
         author::{Author, CreateAuthorJson},
         EmptyResponse, ResponseObject,
     },

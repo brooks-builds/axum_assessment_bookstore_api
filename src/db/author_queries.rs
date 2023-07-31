@@ -4,7 +4,7 @@ use sea_orm::{
     ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set, TryIntoModel,
 };
 
-use crate::types::{
+use crate::models::{
     author::{Author, CreateAuthorJson},
     book::Book,
 };
