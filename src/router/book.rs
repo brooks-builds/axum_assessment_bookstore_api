@@ -23,3 +23,5 @@ pub async fn create_book(
         })?;
     Ok((StatusCode::CREATED, Json(ResponseObject::new_created(book))))
 }
+
+pub async fn get_one_book() {}

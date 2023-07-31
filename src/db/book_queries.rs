@@ -18,3 +18,5 @@ pub async fn insert_book(db: &DatabaseConnection, book: Book) -> Result<Book> {
     .try_into_model()?
     .into())
 }
+
+pub async fn get_by_id(db: &DatabaseConnection, id: i32) -> Result<Option<Book>> {}

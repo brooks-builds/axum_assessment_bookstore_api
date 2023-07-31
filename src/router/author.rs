@@ -81,3 +81,20 @@ pub async fn update_author(
         }
     }
 }
+
+pub async fn delete_author(
+    state: State<AppConfig>,
+    Path(id): Path<i32>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
+    if let Err(error) = author_queries::delete_author(&state.db, id).await {
+        tracing::error!("Error deleting author: {error}");
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ResponseObject::new_internal_error(
+                "There was an error deleting the author",
+            )),
+        ));
+    }
+
+    Ok(StatusCode::NO_CONTENT)
+}

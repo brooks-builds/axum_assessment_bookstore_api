@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum_assessment_bookstore_api::models::{
     author::Author, book::Book, book_author::BookAuthor, ResponseObject,
 };
-use eyre::Result;
+use eyre::{bail, Result};
 use rand::{
     distributions::{Alphanumeric, DistString},
     Rng,
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 const BASE_URL: &str = "http://localhost:3000";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CreateAuthor {
     pub name: String,
     #[serde(skip)]
@@ -92,6 +92,29 @@ impl CreateAuthor {
 
         Ok(())
     }
+
+    pub async fn delete(&mut self) -> Result<()> {
+        let Some(author) = &self.saved else { bail!("Missing author"); };
+        let Some(author) = &author.data else { bail!("Missing data in author object"); };
+        let id = author.id;
+
+        let url = format!("{BASE_URL}/authors/{id}");
+        let client = reqwest::Client::new();
+        let response = client.delete(url).send().await?;
+        let status = response.status();
+
+        assert_eq!(status, 204);
+
+        Ok(())
+    }
+
+    pub fn get_id(&self) -> Result<i32> {
+        let Some(author) = &self.saved else { bail!("Missing author"); };
+        let Some(author) = &author.data else { bail!("Missing data in author object"); };
+        let id = author.id;
+
+        Ok(id)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -128,6 +151,19 @@ impl TestBook {
         let response_data = response.json::<ResponseObject<Book>>().await?;
 
         self.api_book = response_data.data;
+
+        Ok(())
+    }
+
+    pub async fn reload_from_api(&mut self) -> Result<()> {
+        let Some(api_book) = &self.api_book else { bail!("Missing book"); };
+        let Some(id) = api_book.id else { bail!("Missing book id"); };
+        let url = format!("{BASE_URL}/books/{id}");
+        let response = reqwest::get(url).await?;
+
+        assert_eq!(response.status(), 200);
+
+        let book = response.json::<Book>().await?;
 
         Ok(())
     }

@@ -1,5 +1,7 @@
 use sea_orm_migration::prelude::*;
 
+use crate::{m20230724_130406_create_authors::Authors, m20230724_133748_create_books::Books};
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -19,6 +21,20 @@ impl MigrationTrait for Migration {
                             .col(BookAuthors::AuthorId)
                             .col(BookAuthors::BookId),
                     )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_book_author_author")
+                            .from(BookAuthors::Table, BookAuthors::AuthorId)
+                            .to(Authors::Table, Authors::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_book_author_book")
+                            .from(BookAuthors::Table, BookAuthors::BookId)
+                            .to(Books::Table, Books::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await
@@ -34,7 +50,7 @@ impl MigrationTrait for Migration {
 
 /// Learn more at https://docs.rs/sea-query#iden
 #[derive(Iden)]
-enum BookAuthors {
+pub enum BookAuthors {
     Table,
     AuthorId,
     BookId,

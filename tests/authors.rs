@@ -1,12 +1,16 @@
 mod models;
 
+use std::{thread::sleep, time::Duration};
+
 use crate::models::{CreateAuthor, TestBook};
 use axum::http::StatusCode;
 use axum_assessment_bookstore_api::{
     db::{author_queries::get_author_by_id, connect},
     models::{author::Author, book::Book, ResponseObject},
 };
+use dotenvy_macro::dotenv;
 use eyre::Result;
+use sea_orm::{ColumnTrait, Database, DatabaseConnection, EntityTrait, QueryFilter};
 
 const BASE_URL: &str = "http://localhost:3000";
 
@@ -141,7 +145,32 @@ async fn associate_author_with_book() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "todo"]
 async fn delete_an_author() -> Result<()> {
+    let mut author = CreateAuthor::new_random();
+    author.create_in_api().await?;
+
+    let mut book = TestBook::new_random();
+    book.create_in_api().await?;
+
+    author.associate_with_book(&book).await?;
+
+    author.delete().await?;
+
+    let author_id = author.get_id()?;
+    author.reload_from_api().await?;
+    assert!(author.saved.unwrap().data.is_none());
+
+    // verify that author no longer associated with book
+    let database_uri = dotenv!("DATABASE_URL");
+    let db = Database::connect(database_uri).await?;
+    let book_author = entity::book_authors::Entity::find()
+        .filter(entity::book_authors::Column::AuthorId.eq(author_id))
+        .all(&db)
+        .await?;
+
+    assert!(book_author.is_empty());
+
+    book.reload_from_api().await?;
+
     Ok(())
 }

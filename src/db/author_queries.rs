@@ -1,7 +1,8 @@
 use entity::{authors, books};
 use eyre::{bail, Result};
 use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, Set, TryIntoModel,
+    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, ModelTrait, Set,
+    TryIntoModel,
 };
 
 use crate::models::{
@@ -69,5 +70,11 @@ pub async fn update_author(db: &DatabaseConnection, author_id: i32, name: String
     active_db_author.name = Set(name);
     active_db_author.save(db).await?;
 
+    Ok(())
+}
+
+pub async fn delete_author(db: &DatabaseConnection, id: i32) -> Result<()> {
+    let Some(author )= entity::authors::Entity::find_by_id(id).one(db).await? else { return Ok(())};
+    author.delete(db).await?;
     Ok(())
 }
