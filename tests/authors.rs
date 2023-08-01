@@ -40,6 +40,7 @@ async fn get_one_author_with_their_books() -> Result<()> {
             name: Some("Free Book".to_owned()),
             price: Some(0),
             in_stock: Some(true),
+            authors: Some(vec![]),
         }],
     };
 
@@ -81,6 +82,7 @@ async fn get_all_authors_with_their_books() -> Result<()> {
                 name: Some("Free Book".to_owned()),
                 price: Some(0),
                 in_stock: Some(true),
+                authors: Some(vec![]),
             }],
         },
         Author {
@@ -92,12 +94,14 @@ async fn get_all_authors_with_their_books() -> Result<()> {
                     name: Some("Expensive Book".to_owned()),
                     price: Some(10000),
                     in_stock: Some(true),
+                    authors: Some(vec![]),
                 },
                 Book {
                     id: Some(3),
                     name: Some("Unavailable Book".to_owned()),
                     price: Some(1400),
                     in_stock: Some(false),
+                    authors: Some(vec![]),
                 },
             ],
         },
@@ -171,6 +175,8 @@ async fn delete_an_author() -> Result<()> {
     assert!(book_author.is_empty());
 
     book.reload_from_api().await?;
+    dbg!(&book);
+    assert!(book.api_book.is_none());
 
     Ok(())
 }

@@ -20,11 +20,11 @@ pub enum Relation {
 
 impl Related<super::authors::Entity> for Entity {
     fn to() -> RelationDef {
-        super::book_authors::Relation::Authors.def()
+        super::book_authors::Relation::Books.def()
     }
 
     fn via() -> Option<RelationDef> {
-        Some(super::book_authors::Relation::Books.def())
+        Some(super::book_authors::Relation::Authors.def())
     }
 }
 

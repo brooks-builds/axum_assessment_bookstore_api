@@ -163,7 +163,8 @@ impl TestBook {
 
         assert_eq!(response.status(), 200);
 
-        let book = response.json::<Book>().await?;
+        let book = response.json::<ResponseObject<Book>>().await?;
+        dbg!("reloading book from api:", book);
 
         Ok(())
     }

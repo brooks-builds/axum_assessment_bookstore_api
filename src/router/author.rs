@@ -7,7 +7,10 @@ use axum::{
 
 use crate::{
     config::AppConfig,
-    db::author_queries::{self, get_author_by_id, insert_author},
+    db::{
+        author_queries::{self, get_author_by_id, insert_author},
+        book_queries,
+    },
     models::{
         author::{Author, CreateAuthorJson},
         EmptyResponse, ResponseObject,
@@ -95,6 +98,26 @@ pub async fn delete_author(
             )),
         ));
     }
+
+    let books_without_authors = book_queries::get_books_without_authors(&state.db)
+        .await
+        .map_err(|error| {
+            tracing::error!("Error getting books without authors after deleting author: {error}");
+            (
+                StatusCode::OK,
+                Json(ResponseObject::new_ok(Some(EmptyResponse))),
+            )
+        })?;
+
+    book_queries::delete_many(&state.db, books_without_authors)
+        .await
+        .map_err(|error| {
+            tracing::error!("Error deleting books without authors: {error}");
+            (
+                StatusCode::OK,
+                Json(ResponseObject::new_ok(Some(EmptyResponse))),
+            )
+        })?;
 
     Ok(StatusCode::NO_CONTENT)
 }

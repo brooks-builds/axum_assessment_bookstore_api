@@ -8,7 +8,7 @@ pub struct CreateAuthorJson {
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 pub struct Author {
     pub id: i32,
     pub name: String,
