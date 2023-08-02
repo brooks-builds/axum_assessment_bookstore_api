@@ -27,7 +27,7 @@ impl RelationTrait for Relation {
             Relation::Authors => Entity::belongs_to(super::authors::Entity)
                 .from(Column::AuthorId)
                 .to(super::authors::Column::Id)
-                .into(),
+                .into()
         }
     }
 }

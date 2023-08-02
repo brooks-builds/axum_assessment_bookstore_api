@@ -175,7 +175,7 @@ async fn delete_an_author() -> Result<()> {
     assert!(book_author.is_empty());
 
     book.reload_from_api().await?;
-    dbg!(&book);
+    dbg!("******* book", &book);
     assert!(book.api_book.is_none());
 
     Ok(())
