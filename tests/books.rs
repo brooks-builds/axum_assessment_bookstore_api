@@ -1,8 +1,15 @@
+mod models;
+
 use eyre::Result;
+use models::TestBook;
 
 #[tokio::test]
-#[ignore = "todo"]
 async fn create_book() -> Result<()> {
+    let mut book = TestBook::new_random();
+    book.create_in_api().await?;
+
+    assert!(book.api_book.is_some());
+
     Ok(())
 }
 
