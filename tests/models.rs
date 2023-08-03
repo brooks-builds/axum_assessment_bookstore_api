@@ -191,4 +191,16 @@ impl TestBook {
 
         Ok(())
     }
+
+    pub async fn update_in_api(&self) -> Result<()> {
+        let id = self.api_book.as_ref().unwrap().id.unwrap();
+        let url = format!("{BASE_URL}/books/{id}");
+        let client = reqwest::Client::new();
+        let response = client.put(url).json(self).send().await?;
+        let status = response.status();
+
+        assert_eq!(status, 204);
+
+        Ok(())
+    }
 }

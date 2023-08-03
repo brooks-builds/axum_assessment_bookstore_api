@@ -83,3 +83,8 @@ pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<Book>> {
         .map(Into::into)
         .collect())
 }
+
+pub async fn update(db: &DatabaseConnection, book: Book) -> Result<()> {
+    panic!("*************************************************");
+    Ok(())
+}

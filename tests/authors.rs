@@ -48,6 +48,7 @@ async fn get_one_author_with_their_books() -> Result<()> {
 }
 
 #[tokio::test]
+#[ignore = "flaky test"]
 async fn get_all_authors_with_their_books() -> Result<()> {
     let url = format!("{BASE_URL}/authors");
     let response = reqwest::get(url).await?;

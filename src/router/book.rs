@@ -64,3 +64,22 @@ pub async fn get_all_books(
 
     Ok(Json(ResponseObject::new_ok(Some(books))))
 }
+
+pub async fn update_book(
+    state: State<AppConfig>,
+    Json(book): Json<Book>,
+) -> Result<StatusCode, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
+    book_queries::update(&state.db, book)
+        .await
+        .map_err(|error| {
+            tracing::error!("Error updating book: {error}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ResponseObject::new_internal_error(
+                    "There was an error updating the book",
+                )),
+            )
+        })?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
