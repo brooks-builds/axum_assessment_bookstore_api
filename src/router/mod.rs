@@ -10,7 +10,6 @@ use axum::{
 };
 use book::{create_book, get_one_book};
 use book_author::create_book_author;
-use tower_http::trace::OnBodyChunk;
 
 pub fn create_router(state: AppConfig) -> Router {
     Router::new()

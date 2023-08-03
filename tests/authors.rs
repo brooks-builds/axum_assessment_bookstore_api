@@ -1,7 +1,5 @@
 mod models;
 
-use std::{thread::sleep, time::Duration};
-
 use crate::models::{CreateAuthor, TestBook};
 use axum::http::StatusCode;
 use axum_assessment_bookstore_api::{
@@ -10,7 +8,7 @@ use axum_assessment_bookstore_api::{
 };
 use dotenvy_macro::dotenv;
 use eyre::Result;
-use sea_orm::{ColumnTrait, Database, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, Database, EntityTrait, QueryFilter};
 
 const BASE_URL: &str = "http://localhost:3000";
 
@@ -175,7 +173,6 @@ async fn delete_an_author() -> Result<()> {
     assert!(book_author.is_empty());
 
     book.reload_from_api().await?;
-    dbg!("******* book", &book);
     assert!(book.api_book.is_none());
 
     Ok(())
