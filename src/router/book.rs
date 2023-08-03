@@ -47,3 +47,20 @@ pub async fn get_one_book(
 
     Ok(Json(ResponseObject::new_ok(book)))
 }
+
+pub async fn get_all_books(
+    state: State<AppConfig>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
+    let books = book_queries::get_all(&state.db).await.map_err(|error| {
+        tracing::error!("Error getting all books: {error}");
+
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ResponseObject::new_internal_error(
+                "Error getting all books",
+            )),
+        )
+    })?;
+
+    Ok(Json(ResponseObject::new_ok(Some(books))))
+}

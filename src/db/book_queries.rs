@@ -73,3 +73,13 @@ pub async fn delete_many(db: &DatabaseConnection, books: Vec<Book>) -> Result<()
 
     Ok(())
 }
+
+pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<Book>> {
+    Ok(entity::books::Entity::find()
+        .find_with_related(entity::authors::Entity)
+        .all(db)
+        .await?
+        .into_iter()
+        .map(Into::into)
+        .collect())
+}
