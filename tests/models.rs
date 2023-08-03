@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum_assessment_bookstore_api::models::{
     author::Author, book::Book, book_author::BookAuthor, ResponseObject,
 };
-use eyre::{bail, Result};
+use eyre::{bail, eyre, Result};
 use rand::{
     distributions::{Alphanumeric, DistString},
     Rng,
@@ -139,6 +139,29 @@ impl TestBook {
             price,
             in_stock,
         }
+    }
+
+    pub async fn new_from_api(book_id: i32) -> Result<Self> {
+        let url = format!("{BASE_URL}/books/{book_id}");
+        let response = reqwest::get(url).await?;
+        let status = response.status();
+
+        assert_eq!(status, 200);
+
+        let book = response
+            .json::<ResponseObject<Book>>()
+            .await?
+            .data
+            .ok_or_else(|| {
+                eyre!("Book doesn't exist when creating a test book from an api book")
+            })?;
+
+        Ok(Self {
+            api_book: Some(book.clone()),
+            name: book.name.unwrap(),
+            price: book.price.unwrap(),
+            in_stock: book.in_stock.unwrap(),
+        })
     }
 
     pub async fn create_in_api(&mut self) -> Result<()> {

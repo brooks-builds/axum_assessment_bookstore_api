@@ -4,24 +4,18 @@ use eyre::Result;
 use models::TestBook;
 
 #[tokio::test]
-async fn create_book() -> Result<()> {
-    let mut book = TestBook::new_random();
-    book.create_in_api().await?;
-
-    assert!(book.api_book.is_some());
-
-    Ok(())
-}
-
-#[tokio::test]
-#[ignore = "todo"]
-async fn associate_book_with_author() -> Result<()> {
-    Ok(())
-}
-
-#[tokio::test]
-#[ignore = "todo"]
 async fn get_one_book_with_authors() -> Result<()> {
+    let book = TestBook::new_from_api(1).await?;
+    let author = book
+        .api_book
+        .unwrap()
+        .authors
+        .unwrap()
+        .first()
+        .unwrap()
+        .clone();
+
+    assert_eq!(author.name, "One Book".to_owned());
     Ok(())
 }
 
