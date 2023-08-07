@@ -8,7 +8,7 @@ use axum::{
     routing::{delete, get, post, put},
     Router,
 };
-use book::{create_book, get_all_books, get_one_book, update_book};
+use book::{create_book, delete_book, get_all_books, get_one_book, update_book};
 use book_author::create_book_author;
 
 pub fn create_router(state: AppConfig) -> Router {
@@ -23,6 +23,7 @@ pub fn create_router(state: AppConfig) -> Router {
         .route("/books", get(get_all_books))
         .route("/books/:id", get(get_one_book))
         .route("/books/:id", put(update_book))
+        .route("/books/:id", delete(delete_book))
         .with_state(state)
         .layer(tower_http::trace::TraceLayer::new_for_http())
 }

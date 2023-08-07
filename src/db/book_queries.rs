@@ -105,3 +105,9 @@ pub async fn update(db: &DatabaseConnection, book: Book, id: i32) -> Result<()> 
     db_book.save(db).await?;
     Ok(())
 }
+
+pub async fn delete(db: &DatabaseConnection, id: i32) -> Result<()> {
+    entity::books::Entity::delete_by_id(id).exec(db).await?;
+
+    Ok(())
+}

@@ -84,3 +84,20 @@ pub async fn update_book(
 
     Ok(StatusCode::NO_CONTENT)
 }
+
+pub async fn delete_book(
+    Path(id): Path<i32>,
+    State(state): State<AppConfig>,
+) -> Result<StatusCode, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
+    book_queries::delete(&state.db, id).await.map_err(|error| {
+        tracing::error!("Error deleting book from db: {error}");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ResponseObject::new_internal_error(
+                "There was an error deleting the book",
+            )),
+        )
+    })?;
+
+    Ok(StatusCode::NO_CONTENT)
+}

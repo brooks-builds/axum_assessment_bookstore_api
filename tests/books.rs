@@ -8,6 +8,8 @@ use rand::{
     thread_rng,
 };
 
+use crate::models::CreateAuthor;
+
 #[tokio::test]
 async fn get_one_book_with_authors() -> Result<()> {
     let book = TestBook::new_from_api(1).await?;
@@ -71,7 +73,19 @@ async fn update_book() -> Result<()> {
 }
 
 #[tokio::test]
-#[ignore = "todo"]
 async fn delete_book() -> Result<()> {
+    let mut book = TestBook::new_random();
+
+    book.create_in_api().await?;
+
+    let seeded_author_id = 1;
+    let mut author = CreateAuthor::new_get_from_api(seeded_author_id).await?;
+
+    author.associate_with_book(&book).await?;
+    book.delete().await?;
+    author.reload_from_api().await?;
+
+    assert!(author.saved.unwrap().data.unwrap().books.is_empty());
+
     Ok(())
 }

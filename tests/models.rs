@@ -205,4 +205,16 @@ impl TestBook {
 
         Ok(())
     }
+
+    pub async fn delete(&self) -> Result<()> {
+        let id = self.api_book.as_ref().unwrap().id.unwrap();
+        let url = format!("{BASE_URL}/books/{id}");
+        let client = reqwest::Client::new();
+        let response = client.delete(url).send().await?;
+        let status = response.status();
+
+        assert_eq!(status, 204);
+
+        Ok(())
+    }
 }
