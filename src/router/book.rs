@@ -67,9 +67,10 @@ pub async fn get_all_books(
 
 pub async fn update_book(
     state: State<AppConfig>,
+    Path(id): Path<i32>,
     Json(book): Json<Book>,
 ) -> Result<StatusCode, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
-    book_queries::update(&state.db, book)
+    book_queries::update(&state.db, book, id)
         .await
         .map_err(|error| {
             tracing::error!("Error updating book: {error}");

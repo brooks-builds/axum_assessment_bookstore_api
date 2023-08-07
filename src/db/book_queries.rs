@@ -2,7 +2,7 @@ use crate::models::book::Book;
 use eyre::{bail, Result};
 use sea_orm::{
     sea_query::Query, ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, EntityTrait,
-    QueryFilter, Set, TryIntoModel,
+    IntoActiveModel, QueryFilter, Set, TryIntoModel,
 };
 
 pub async fn insert_book(db: &DatabaseConnection, book: Book) -> Result<Book> {
@@ -84,7 +84,24 @@ pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<Book>> {
         .collect())
 }
 
-pub async fn update(db: &DatabaseConnection, book: Book) -> Result<()> {
-    panic!("*************************************************");
+pub async fn update(db: &DatabaseConnection, book: Book, id: i32) -> Result<()> {
+    let Some(db_book)= entity::books::Entity::find_by_id(id).one(db).await? else {
+        return Ok(());
+    };
+    let mut db_book = db_book.into_active_model();
+
+    if let Some(name) = book.name {
+        db_book.name = Set(name);
+    }
+
+    if let Some(price) = book.price {
+        db_book.price = Set(price);
+    }
+
+    if let Some(in_stock) = book.in_stock {
+        db_book.in_stock = Set(in_stock);
+    }
+
+    db_book.save(db).await?;
     Ok(())
 }

@@ -18,6 +18,7 @@ pub struct CreateAuthor {
     pub saved: Option<ResponseObject<Author>>,
 }
 
+#[allow(dead_code)]
 impl CreateAuthor {
     pub fn new_random() -> Self {
         let mut rng = rand::thread_rng();
@@ -126,6 +127,7 @@ pub struct TestBook {
     pub in_stock: bool,
 }
 
+#[allow(dead_code)]
 impl TestBook {
     pub fn new_random() -> Self {
         let mut rng = rand::thread_rng();
