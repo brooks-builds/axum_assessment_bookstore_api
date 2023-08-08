@@ -1,5 +1,6 @@
 use super::book::Book;
 use entity::authors::Model as AuthorModel;
+use entity::books::Model as BookModel;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
@@ -14,7 +15,19 @@ impl From<AuthorModel> for Author {
         Self {
             id: Some(value.id),
             name: Some(value.name),
-            books: Some(vec![]),
+            books: None,
+        }
+    }
+}
+
+impl From<&(AuthorModel, Vec<BookModel>)> for Author {
+    fn from((db_author, db_books): &(AuthorModel, Vec<BookModel>)) -> Self {
+        let books = db_books.iter().map(Into::into).collect();
+
+        Self {
+            id: Some(db_author.id),
+            name: Some(db_author.name.clone()),
+            books: Some(books),
         }
     }
 }
