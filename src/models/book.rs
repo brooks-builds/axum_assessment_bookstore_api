@@ -1,4 +1,4 @@
-use super::author::Author;
+use super::{author::Author, ModelsError};
 use entity::books::Model as BookModel;
 use serde::{Deserialize, Serialize};
 
@@ -20,5 +20,45 @@ impl From<&BookModel> for Book {
             in_stock: Some(value.in_stock),
             authors: None,
         }
+    }
+}
+
+impl From<BookModel> for Book {
+    fn from(value: BookModel) -> Self {
+        Self {
+            id: Some(value.id),
+            name: Some(value.name),
+            price: Some(value.price),
+            in_stock: Some(value.in_stock),
+            authors: None,
+        }
+    }
+}
+
+pub struct InsertBook {
+    pub name: String,
+    pub price: i32,
+    pub in_stock: bool,
+}
+
+impl TryFrom<Book> for InsertBook {
+    type Error = ModelsError;
+
+    fn try_from(value: Book) -> Result<Self, Self::Error> {
+        let Some(name) = value.name else {
+            return Err(ModelsError::MissingField("name"));
+        };
+        let Some(price) = value.price else {
+            return Err(ModelsError::MissingField("price"));
+        };
+        let Some(in_stock) = value.in_stock else {
+            return Err(ModelsError::MissingField("in_stock"));
+        };
+
+        Ok(Self {
+            name,
+            price,
+            in_stock,
+        })
     }
 }

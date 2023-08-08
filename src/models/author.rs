@@ -1,4 +1,5 @@
 use super::book::Book;
+use super::ModelsError;
 use entity::authors::Model as AuthorModel;
 use entity::books::Model as BookModel;
 use serde::{Deserialize, Serialize};
@@ -38,10 +39,10 @@ pub struct CreateAuthor {
 }
 
 impl TryFrom<Author> for CreateAuthor {
-    type Error = AuthorError;
+    type Error = ModelsError;
 
     fn try_from(value: Author) -> Result<Self, Self::Error> {
-        let Some(name) = value.name else { return Err(AuthorError::MissingAuthorField("name"))};
+        let Some(name) = value.name else { return Err(ModelsError::MissingField("name"))};
 
         Ok(Self { name })
     }
@@ -53,17 +54,11 @@ pub struct AtomicUpdateAuthor {
 }
 
 impl TryFrom<Author> for AtomicUpdateAuthor {
-    type Error = AuthorError;
+    type Error = ModelsError;
 
     fn try_from(value: Author) -> Result<Self, Self::Error> {
-        let Some(name) = value.name else { return Err(AuthorError::MissingAuthorField("name"))};
+        let Some(name) = value.name else { return Err(ModelsError::MissingField("name"))};
 
         Ok(Self { name })
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum AuthorError {
-    #[error("Missing field: {0}")]
-    MissingAuthorField(&'static str),
 }
