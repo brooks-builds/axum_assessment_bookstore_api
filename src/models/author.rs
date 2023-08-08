@@ -47,6 +47,21 @@ impl TryFrom<Author> for CreateAuthor {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct AtomicUpdateAuthor {
+    pub name: String,
+}
+
+impl TryFrom<Author> for AtomicUpdateAuthor {
+    type Error = AuthorError;
+
+    fn try_from(value: Author) -> Result<Self, Self::Error> {
+        let Some(name) = value.name else { return Err(AuthorError::MissingAuthorField("name"))};
+
+        Ok(Self { name })
+    }
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum AuthorError {
     #[error("Missing field: {0}")]
