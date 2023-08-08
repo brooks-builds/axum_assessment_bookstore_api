@@ -1,80 +1,23 @@
-use entity::{authors, books};
-use eyre::{bail, Result};
-use sea_orm::{
-    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, ModelTrait, Set,
-    TryIntoModel,
-};
+use crate::models::author::{Author, CreateAuthor};
+use eyre::Result;
+use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TryIntoModel};
 
-use crate::models::{
-    author::{Author, CreateAuthorJson},
-    book::Book,
-};
+pub async fn insert_author(db: &DatabaseConnection, author: CreateAuthor) -> Result<Author> {
+    let mut new_author = <entity::authors::ActiveModel as std::default::Default>::default();
 
-pub async fn insert_author(
-    create_author: CreateAuthorJson,
-    db: &DatabaseConnection,
-) -> Result<Author> {
-    let author = authors::ActiveModel {
-        name: sea_orm::ActiveValue::Set(create_author.name),
-        ..Default::default()
-    };
+    new_author.name = Set(author.name);
 
-    let created_author = author.save(db).await?.try_into_model()?;
-    Ok(Author {
-        id: created_author.id,
-        name: created_author.name,
-        books: vec![],
-    })
+    let created_author = new_author.save(db).await?.try_into_model()?.into();
+
+    Ok(created_author)
 }
 
-pub async fn get_author_by_id(id: i32, db: &DatabaseConnection) -> Result<Option<Author>> {
-    let authors = authors::Entity::find_by_id(id)
-        .find_with_related(books::Entity)
-        .all(db)
-        .await?;
-
-    if authors.is_empty() {
-        return Ok(None);
-    }
-
-    let (author, books) = &authors[0];
-    let books = books.iter().map(Into::into).collect::<Vec<Book>>();
-    let mut author = Author::from(author);
-    author.books = books;
-
-    Ok(Some(author))
+pub async fn get_author_by_id(db: &DatabaseConnection, id: i32) -> Result<Option<Author>> {
+    todo!()
 }
 
-pub async fn get_all_authors(db: &DatabaseConnection) -> Result<Vec<Author>> {
-    let db_authors = authors::Entity::find()
-        .find_with_related(books::Entity)
-        .all(db)
-        .await?;
+pub async fn get_all_authors() {}
 
-    Ok(db_authors
-        .into_iter()
-        .map(|(db_author, db_books)| {
-            let mut author = Author::from(&db_author);
-            author.books = db_books.iter().map(Into::into).collect();
-            author
-        })
-        .collect())
-}
+pub async fn update_author() {}
 
-pub async fn update_author(db: &DatabaseConnection, author_id: i32, name: String) -> Result<()> {
-    let Some(db_author )= authors::Entity::find_by_id(author_id).one(db).await? else {
-        bail!("not_found");
-    };
-    let mut active_db_author = db_author.into_active_model();
-
-    active_db_author.name = Set(name);
-    active_db_author.save(db).await?;
-
-    Ok(())
-}
-
-pub async fn delete_author(db: &DatabaseConnection, id: i32) -> Result<()> {
-    let Some(author )= entity::authors::Entity::find_by_id(id).one(db).await? else { return Ok(())};
-    author.delete(db).await?;
-    Ok(())
-}
+pub async fn delete_author() {}

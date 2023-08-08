@@ -317,6 +317,7 @@ dependencies = [
  "reqwest",
  "sea-orm",
  "serde",
+ "thiserror",
  "tokio",
  "tower-http",
  "tracing",
