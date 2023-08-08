@@ -1,7 +1,9 @@
 use crate::models::book::{Book, InsertBook};
+use entity::authors::Entity as AuthorEntity;
 use entity::books::ActiveModel as BookActiveModel;
+use entity::books::Entity as BookEntity;
 use eyre::Result;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TryIntoModel};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, TryIntoModel};
 
 pub async fn insert_book(db: &DatabaseConnection, book: InsertBook) -> Result<Book> {
     let book = BookActiveModel {
@@ -17,7 +19,17 @@ pub async fn insert_book(db: &DatabaseConnection, book: InsertBook) -> Result<Bo
     Ok(book.into())
 }
 
-pub async fn get_book_by_id() {}
+pub async fn get_book_by_id(db: &DatabaseConnection, id: i32) -> Result<Option<Book>> {
+    let books = BookEntity::find_by_id(id)
+        .find_with_related(AuthorEntity)
+        .all(db)
+        .await?;
+    let Some(book) = books.first() else {
+        return Ok(None);
+    };
+
+    Ok(Some(book.into()))
+}
 
 pub async fn get_all_books() {}
 

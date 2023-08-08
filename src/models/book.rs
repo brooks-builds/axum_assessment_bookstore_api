@@ -1,4 +1,5 @@
 use super::{author::Author, ModelsError};
+use entity::authors::Model as AuthorModel;
 use entity::books::Model as BookModel;
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +32,20 @@ impl From<BookModel> for Book {
             price: Some(value.price),
             in_stock: Some(value.in_stock),
             authors: None,
+        }
+    }
+}
+
+impl From<&(BookModel, Vec<AuthorModel>)> for Book {
+    fn from((book, authors): &(BookModel, Vec<AuthorModel>)) -> Self {
+        let authors = authors.iter().map(Into::into).collect();
+
+        Self {
+            id: Some(book.id),
+            name: Some(book.name.clone()),
+            price: Some(book.price),
+            in_stock: Some(book.in_stock),
+            authors: Some(authors),
         }
     }
 }

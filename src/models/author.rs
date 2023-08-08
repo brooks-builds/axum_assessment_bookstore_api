@@ -21,6 +21,16 @@ impl From<AuthorModel> for Author {
     }
 }
 
+impl From<&AuthorModel> for Author {
+    fn from(value: &AuthorModel) -> Self {
+        Self {
+            id: Some(value.id),
+            name: Some(value.name.clone()),
+            books: None,
+        }
+    }
+}
+
 impl From<&(AuthorModel, Vec<BookModel>)> for Author {
     fn from((db_author, db_books): &(AuthorModel, Vec<BookModel>)) -> Self {
         let books = db_books.iter().map(Into::into).collect();
