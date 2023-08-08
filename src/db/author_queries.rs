@@ -2,7 +2,7 @@ use crate::models::author::{Author, CreateAuthor, AtomicUpdateAuthor};
 use entity::authors::Entity as AuthorEntity;
 use entity::books::Entity as BookEntity;
 use eyre::Result;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, TryIntoModel, IntoActiveModel};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, TryIntoModel, IntoActiveModel, ModelTrait};
 
 pub async fn insert_author(db: &DatabaseConnection, author: CreateAuthor) -> Result<Author> {
     let mut new_author = <entity::authors::ActiveModel as std::default::Default>::default();
@@ -50,4 +50,12 @@ pub async fn update_author(db: &DatabaseConnection, id: i32, author: AtomicUpdat
     Ok(())
 }
 
-pub async fn delete_author() {}
+pub async fn delete_author(db: &DatabaseConnection, id: i32) -> Result<()> {
+    let Some(author) = AuthorEntity::find_by_id(id).one(db).await? else {
+        return Ok(());
+    };
+    
+    author.delete(db).await?;
+    
+    Ok(())
+}
