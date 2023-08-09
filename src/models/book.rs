@@ -77,3 +77,14 @@ impl TryFrom<Book> for InsertBook {
         })
     }
 }
+
+pub struct UpdateBook {
+    pub name: String,
+    pub price: i32,
+    pub in_stock: bool,
+    pub authors: Vec<Author>,
+}
+
+impl From<Book> for UpdateBook {
+    fn from(value: Book) -> Self {}
+}
