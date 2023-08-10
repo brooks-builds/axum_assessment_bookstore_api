@@ -84,13 +84,9 @@ impl TryFrom<Author> for AuthorResponse {
     type Error = ModelsError;
 
     fn try_from(value: Author) -> Result<Self, Self::Error> {
-        let id = value.id.ok_or_else(|| ModelsError::MissingField("id"))?;
-        let name = value
-            .name
-            .ok_or_else(|| ModelsError::MissingField("name"))?;
-        let books = value
-            .books
-            .ok_or_else(|| ModelsError::MissingField("books"))?;
+        let id = value.id.ok_or(ModelsError::MissingField("id"))?;
+        let name = value.name.ok_or(ModelsError::MissingField("name"))?;
+        let books = value.books.ok_or(ModelsError::MissingField("books"))?;
 
         Ok(Self { id, name, books })
     }

@@ -1,14 +1,13 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::IntoResponse,
     Json,
 };
 
 use crate::{
     config::AppConfig,
     db::book_queries,
-    models::book::{Book, BookResponse, InsertBook, UpdateBook},
+    models::book::{Book, BookResponse, UpdateBook},
 };
 
 use super::ErrorResponse;

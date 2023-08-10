@@ -89,18 +89,12 @@ impl TryFrom<Book> for UpdateBook {
     type Error = ModelsError;
 
     fn try_from(value: Book) -> Result<Self, Self::Error> {
-        let name = value
-            .name
-            .ok_or_else(|| ModelsError::MissingField("name"))?;
-        let price = value
-            .price
-            .ok_or_else(|| ModelsError::MissingField("price"))?;
+        let name = value.name.ok_or(ModelsError::MissingField("name"))?;
+        let price = value.price.ok_or(ModelsError::MissingField("price"))?;
         let in_stock = value
             .in_stock
-            .ok_or_else(|| ModelsError::MissingField("in_stock"))?;
-        let authors = value
-            .authors
-            .ok_or_else(|| ModelsError::MissingField("authors"))?;
+            .ok_or(ModelsError::MissingField("in_stock"))?;
+        let authors = value.authors.ok_or(ModelsError::MissingField("authors"))?;
 
         Ok(Self {
             name,
@@ -124,19 +118,13 @@ impl TryFrom<Book> for BookResponse {
     type Error = ModelsError;
 
     fn try_from(value: Book) -> Result<Self, Self::Error> {
-        let id = value.id.ok_or_else(|| ModelsError::MissingField("id"))?;
-        let name = value
-            .name
-            .ok_or_else(|| ModelsError::MissingField("name"))?;
-        let price = value
-            .price
-            .ok_or_else(|| ModelsError::MissingField("price"))?;
+        let id = value.id.ok_or(ModelsError::MissingField("id"))?;
+        let name = value.name.ok_or(ModelsError::MissingField("name"))?;
+        let price = value.price.ok_or(ModelsError::MissingField("price"))?;
         let in_stock = value
             .in_stock
-            .ok_or_else(|| ModelsError::MissingField("in_stock"))?;
-        let authors = value
-            .authors
-            .ok_or_else(|| ModelsError::MissingField("authors"))?;
+            .ok_or(ModelsError::MissingField("in_stock"))?;
+        let authors = value.authors.ok_or(ModelsError::MissingField("authors"))?;
 
         Ok(Self {
             id,

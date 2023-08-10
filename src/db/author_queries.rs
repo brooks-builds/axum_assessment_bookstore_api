@@ -3,12 +3,13 @@ use entity::authors::Entity as AuthorEntity;
 use entity::books::Entity as BookEntity;
 use eyre::Result;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, TryIntoModel, IntoActiveModel, ModelTrait};
+use entity::authors::ActiveModel as ActiveAuthorModel;
 
 pub async fn insert_author(db: &DatabaseConnection, author: CreateAuthor) -> Result<Author> {
-    let mut new_author = <entity::authors::ActiveModel as std::default::Default>::default();
-
-    new_author.name = Set(author.name);
-
+    let new_author = ActiveAuthorModel {
+        name: Set(author.name),
+        ..Default::default()
+    };
     let created_author = new_author.save(db).await?.try_into_model()?.into();
 
     Ok(created_author)
