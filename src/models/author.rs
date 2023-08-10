@@ -72,3 +72,26 @@ impl TryFrom<Author> for AtomicUpdateAuthor {
         Ok(Self { name })
     }
 }
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
+pub struct AuthorResponse {
+    pub id: i32,
+    pub name: String,
+    pub books: Vec<Book>,
+}
+
+impl TryFrom<Author> for AuthorResponse {
+    type Error = ModelsError;
+
+    fn try_from(value: Author) -> Result<Self, Self::Error> {
+        let id = value.id.ok_or_else(|| ModelsError::MissingField("id"))?;
+        let name = value
+            .name
+            .ok_or_else(|| ModelsError::MissingField("name"))?;
+        let books = value
+            .books
+            .ok_or_else(|| ModelsError::MissingField("books"))?;
+
+        Ok(Self { id, name, books })
+    }
+}

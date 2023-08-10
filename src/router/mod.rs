@@ -4,12 +4,15 @@ mod book_author;
 
 use crate::config::AppConfig;
 use author::{create_author, delete_author, get_all_authors, get_one_author, update_author};
+use axum::http::StatusCode;
 use axum::{
     routing::{delete, get, post, put},
     Router,
 };
 use book::{create_book, delete_book, get_all_books, get_one_book, update_book};
 use book_author::create_book_author;
+
+type ErrorResponse = (StatusCode, String);
 
 pub fn create_router(state: AppConfig) -> Router {
     Router::new()

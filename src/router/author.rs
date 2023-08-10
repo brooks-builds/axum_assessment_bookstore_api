@@ -1,121 +1,131 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::IntoResponse,
     Json,
 };
 
 use crate::{
     config::AppConfig,
-    db::{
-        author_queries::{self, get_author_by_id, insert_author},
-        book_queries,
-    },
-    models::{
-        author::{Author, CreateAuthorJson},
-        EmptyResponse, ResponseObject,
-    },
+    db::author_queries,
+    models::author::{Author, AuthorResponse},
 };
+
+use super::ErrorResponse;
 
 pub async fn create_author(
     state: State<AppConfig>,
-    Json(new_author): Json<CreateAuthorJson>,
-) -> Result<impl IntoResponse, StatusCode> {
-    let author = insert_author(new_author, &state.db)
+    Json(new_author): Json<Author>,
+) -> Result<(StatusCode, Json<AuthorResponse>), ErrorResponse> {
+    let create_author = new_author.try_into().map_err(|error| {
+        tracing::error!("Error creating author: {error}");
+        (StatusCode::BAD_REQUEST, format!("{error}"))
+    })?;
+    let created_author = author_queries::insert_author(&state.db, create_author)
         .await
         .map_err(|error| {
-            tracing::error!("Error inserting author: {error}");
-            StatusCode::INTERNAL_SERVER_ERROR
+            tracing::error!("Error inserting author into database: {error}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error creating the author".to_owned(),
+            )
         })?;
-    Ok((
-        StatusCode::CREATED,
-        Json(ResponseObject::new_created(author)),
-    ))
+    let response = created_author.try_into().map_err(|error| {
+        tracing::error!("Error converting created author to response: {error}");
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "There was an error creating the author".to_owned(),
+        )
+    })?;
+
+    Ok((StatusCode::CREATED, Json(response)))
 }
 
 pub async fn get_one_author(
     state: State<AppConfig>,
     Path(id): Path<i32>,
-) -> Result<Json<ResponseObject<Author>>, Json<ResponseObject<()>>> {
-    let author = match get_author_by_id(id, &state.db).await {
-        Ok(author) => author,
-        Err(error) => {
-            tracing::error!("Error getting author by id: {error}");
-            return Err(Json(ResponseObject::new_internal_error(
-                "There was an error getting the author",
-            )));
-        }
-    };
+) -> Result<Json<AuthorResponse>, ErrorResponse> {
+    let author = author_queries::get_author_by_id(&state.db, id)
+        .await
+        .map_err(|error| {
+            tracing::error!("Error getting author from db: {error}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error getting the author".to_owned(),
+            )
+        })?
+        .ok_or_else(|| (StatusCode::NOT_FOUND, "Author not found".to_owned()))?
+        .try_into()
+        .map_err(|error| {
+            tracing::error!("Error converting db author to response author: {error}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error getting the author".to_owned(),
+            )
+        })?;
 
-    Ok(Json(ResponseObject::new_ok(author)))
+    Ok(Json(author))
 }
 
 pub async fn get_all_authors(
     state: State<AppConfig>,
-) -> Result<Json<ResponseObject<Vec<Author>>>, Json<ResponseObject<()>>> {
-    match author_queries::get_all_authors(&state.db).await {
-        Ok(authors) => Ok(Json(ResponseObject::new_ok(Some(authors)))),
-        Err(error) => {
+) -> Result<Json<Vec<AuthorResponse>>, ErrorResponse> {
+    let authors = author_queries::get_all_authors(&state.db)
+        .await
+        .map_err(|error| {
             tracing::error!("Error getting all authors: {error}");
-            Err(Json(ResponseObject::new_internal_error(
-                "there was an error getting all authors",
-            )))
-        }
-    }
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error getting all authors".to_owned(),
+            )
+        })?
+        .into_iter()
+        .map(TryInto::try_into)
+        .collect::<Result<Vec<AuthorResponse>, _>>()
+        .map_err(|error| {
+            tracing::error!("Error converting get all author into response author: {error}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error getting all authors".to_owned(),
+            )
+        })?;
+
+    Ok(Json(authors))
 }
 
 pub async fn update_author(
     state: State<AppConfig>,
     Path(id): Path<i32>,
-    Json(update_author): Json<CreateAuthorJson>,
-) -> Result<impl IntoResponse, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
-    match author_queries::update_author(&state.db, id, update_author.name).await {
-        Ok(_) => Ok(StatusCode::NO_CONTENT),
-        Err(error) => {
-            if error.root_cause().to_string() == "not_found" {
-                Err((StatusCode::OK, Json(ResponseObject::new_ok(None))))
-            } else {
-                tracing::error!("error updating author: {error}");
-                Err((
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ResponseObject::new_internal_error("Error updating author")),
-                ))
-            }
-        }
-    }
+    Json(author): Json<Author>,
+) -> Result<StatusCode, ErrorResponse> {
+    let author = author.try_into().map_err(|error| {
+        tracing::error!("Error converting request author to atomic update author: {error}");
+        (StatusCode::BAD_REQUEST, format!("{error}"))
+    })?;
+
+    author_queries::update_author(&state.db, id, author)
+        .await
+        .map_err(|error| {
+            tracing::error!("Error updating author: {error}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error updating the author".to_owned(),
+            )
+        })?;
+
+    Ok(StatusCode::NO_CONTENT)
 }
 
 pub async fn delete_author(
     state: State<AppConfig>,
     Path(id): Path<i32>,
-) -> Result<impl IntoResponse, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
-    if let Err(error) = author_queries::delete_author(&state.db, id).await {
-        tracing::error!("Error deleting author: {error}");
-        return Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ResponseObject::new_internal_error(
-                "There was an error deleting the author",
-            )),
-        ));
-    }
-
-    let books_without_authors = book_queries::get_books_without_authors(&state.db)
+) -> Result<StatusCode, ErrorResponse> {
+    author_queries::delete_author(&state.db, id)
         .await
         .map_err(|error| {
-            tracing::error!("Error getting books without authors after deleting author: {error}");
+            tracing::error!("Error deleting author: {error}");
             (
-                StatusCode::OK,
-                Json(ResponseObject::new_ok(Some(EmptyResponse))),
-            )
-        })?;
-
-    book_queries::delete_many(&state.db, books_without_authors)
-        .await
-        .map_err(|error| {
-            tracing::error!("Error deleting books without authors: {error}");
-            (
-                StatusCode::OK,
-                Json(ResponseObject::new_ok(Some(EmptyResponse))),
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "There was an error deleting the author".to_owned(),
             )
         })?;
 
