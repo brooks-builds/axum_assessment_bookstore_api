@@ -85,6 +85,65 @@ pub struct UpdateBook {
     pub authors: Vec<Author>,
 }
 
-impl From<Book> for UpdateBook {
-    fn from(value: Book) -> Self {}
+impl TryFrom<Book> for UpdateBook {
+    type Error = ModelsError;
+
+    fn try_from(value: Book) -> Result<Self, Self::Error> {
+        let name = value
+            .name
+            .ok_or_else(|| ModelsError::MissingField("name"))?;
+        let price = value
+            .price
+            .ok_or_else(|| ModelsError::MissingField("price"))?;
+        let in_stock = value
+            .in_stock
+            .ok_or_else(|| ModelsError::MissingField("in_stock"))?;
+        let authors = value
+            .authors
+            .ok_or_else(|| ModelsError::MissingField("authors"))?;
+
+        Ok(Self {
+            name,
+            price,
+            in_stock,
+            authors,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
+pub struct BookResponse {
+    pub id: i32,
+    pub name: String,
+    pub price: i32,
+    pub in_stock: bool,
+    pub authors: Vec<Author>,
+}
+
+impl TryFrom<Book> for BookResponse {
+    type Error = ModelsError;
+
+    fn try_from(value: Book) -> Result<Self, Self::Error> {
+        let id = value.id.ok_or_else(|| ModelsError::MissingField("id"))?;
+        let name = value
+            .name
+            .ok_or_else(|| ModelsError::MissingField("name"))?;
+        let price = value
+            .price
+            .ok_or_else(|| ModelsError::MissingField("price"))?;
+        let in_stock = value
+            .in_stock
+            .ok_or_else(|| ModelsError::MissingField("in_stock"))?;
+        let authors = value
+            .authors
+            .ok_or_else(|| ModelsError::MissingField("authors"))?;
+
+        Ok(Self {
+            id,
+            name,
+            price,
+            in_stock,
+            authors,
+        })
+    }
 }
