@@ -1,29 +1,22 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::State, http::StatusCode, Json};
 
-use crate::{
-    config::AppConfig,
-    db::book_author_queries,
-    models::{book_author::BookAuthor, EmptyResponse, ResponseObject},
-};
+use crate::{config::AppConfig, db::book_author_queries, models::book_author::BookAuthor};
+
+use super::ErrorResponse;
 
 pub async fn create_book_author(
     state: State<AppConfig>,
     Json(book_author): Json<BookAuthor>,
-) -> Result<impl IntoResponse, (StatusCode, Json<ResponseObject<EmptyResponse>>)> {
-    let book_author = book_author_queries::insert_book_author(&state.db, book_author)
+) -> Result<StatusCode, ErrorResponse> {
+    book_author_queries::associate_book_with_author(&state.db, book_author)
         .await
         .map_err(|error| {
-            tracing::error!("Error inserting book author: {error}");
+            tracing::error!("Error creating association between book and author: {error}");
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ResponseObject::new_internal_error(
-                    "Error creating association between book and author",
-                )),
+                "There was an error associating the book and author".to_owned(),
             )
         })?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(ResponseObject::new_created(book_author)),
-    ))
+    Ok(StatusCode::CREATED)
 }
