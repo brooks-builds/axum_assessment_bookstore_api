@@ -54,3 +54,17 @@ async fn should_get_all_authors() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn should_get_one_author() -> Result<()> {
+    let url = format!("{BASE_URL}/authors/2");
+    let author = reqwest::get(url).await?.json::<TestAuthor>().await?;
+
+    assert!(author.id.is_some_and(|id| id == 2));
+    assert_eq!(author.name, "One Book");
+    assert!(author
+        .books
+        .is_some_and(|books| books[0].name == "Free Book"));
+
+    Ok(())
+}
