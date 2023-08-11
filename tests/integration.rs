@@ -2,6 +2,7 @@ mod models;
 
 use crate::models::TestAuthor;
 use eyre::Result;
+use migration::cli;
 use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
@@ -109,6 +110,35 @@ async fn should_update_an_author() -> Result<()> {
         .await?;
 
     assert_eq!(after_update_author.name, created_author.name);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn should_delete_an_author() -> Result<()> {
+    let new_author = TestAuthor::new_random();
+    let authors_url = format!("{BASE_URL}/authors");
+    let client = reqwest::Client::new();
+    let created_author = client
+        .post(authors_url)
+        .json(&new_author)
+        .send()
+        .await?
+        .json::<TestAuthor>()
+        .await?;
+    let one_author_url = format!(
+        "{BASE_URL}/authors/{}",
+        created_author
+            .id
+            .expect("created author is supposed to have an id")
+    );
+    let deleted_response = client.delete(one_author_url.clone()).send().await?;
+
+    assert_eq!(deleted_response.status(), 204);
+
+    let deleted_author_response = reqwest::get(one_author_url).await?;
+
+    assert_eq!(deleted_author_response.status(), 404);
 
     Ok(())
 }
