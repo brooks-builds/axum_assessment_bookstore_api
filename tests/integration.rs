@@ -3,6 +3,7 @@ mod models;
 use crate::models::TestAuthor;
 use eyre::Result;
 use migration::cli;
+use models::TestBook;
 use rand::{
     distributions::{Alphanumeric, DistString},
     thread_rng,
@@ -139,6 +140,28 @@ async fn should_delete_an_author() -> Result<()> {
     let deleted_author_response = reqwest::get(one_author_url).await?;
 
     assert_eq!(deleted_author_response.status(), 404);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn should_create_a_book() -> Result<()> {
+    let new_book = TestBook::new_random();
+    let url = format!("{BASE_URL}/books");
+    let client = reqwest::Client::new();
+    let response = client.post(url).json(&new_book).send().await?;
+
+    assert_eq!(response.status(), 201);
+
+    let created_book = response.json::<TestBook>().await?;
+
+    assert!(created_book.id.is_some());
+    assert_eq!(created_book.name, new_book.name);
+    assert_eq!(created_book.price, new_book.price);
+    assert_eq!(created_book.in_stock, new_book.in_stock);
+    assert!(created_book
+        .authors
+        .is_some_and(|authors| authors.is_empty()));
 
     Ok(())
 }

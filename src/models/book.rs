@@ -124,7 +124,7 @@ impl TryFrom<Book> for BookResponse {
         let in_stock = value
             .in_stock
             .ok_or(ModelsError::MissingField("in_stock"))?;
-        let authors = value.authors.ok_or(ModelsError::MissingField("authors"))?;
+        let authors = value.authors.unwrap_or_default();
 
         Ok(Self {
             id,

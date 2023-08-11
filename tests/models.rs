@@ -1,6 +1,6 @@
 use rand::{
     distributions::{Alphanumeric, DistString},
-    thread_rng,
+    thread_rng, Rng,
 };
 use serde::{Deserialize, Serialize};
 
@@ -31,4 +31,21 @@ pub struct TestBook {
     pub price: Option<i32>,
     pub in_stock: Option<bool>,
     pub authors: Option<Vec<TestAuthor>>,
+}
+
+impl TestBook {
+    pub fn new_random() -> Self {
+        let mut rng = thread_rng();
+        let name = Alphanumeric.sample_string(&mut rng, 8);
+        let price = rng.gen_range(0..100);
+        let in_stock = rng.gen_bool(0.5);
+
+        Self {
+            id: None,
+            name,
+            price: Some(price),
+            in_stock: Some(in_stock),
+            authors: None,
+        }
+    }
 }
