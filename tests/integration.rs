@@ -2,6 +2,10 @@ mod models;
 
 use crate::models::TestAuthor;
 use eyre::Result;
+use rand::{
+    distributions::{Alphanumeric, DistString},
+    thread_rng,
+};
 
 const BASE_URL: &str = "http://localhost:3000";
 
@@ -65,6 +69,46 @@ async fn should_get_one_author() -> Result<()> {
     assert!(author
         .books
         .is_some_and(|books| books[0].name == "Free Book"));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn should_update_an_author() -> Result<()> {
+    let create_author_url = format!("{BASE_URL}/authors");
+    let new_author = TestAuthor::new_random();
+    let client = reqwest::Client::new();
+    let mut created_author = client
+        .post(create_author_url)
+        .json(&new_author)
+        .send()
+        .await?
+        .json::<TestAuthor>()
+        .await?;
+    let mut rng = thread_rng();
+
+    created_author.name = Alphanumeric.sample_string(&mut rng, 16);
+
+    let update_url = format!(
+        "{BASE_URL}/authors/{}",
+        created_author.id.expect("created author should have an id")
+    );
+    let update_response = client
+        .put(update_url.clone())
+        .json(&created_author)
+        .send()
+        .await?;
+
+    assert_eq!(update_response.status(), 204);
+
+    let after_update_author = client
+        .get(update_url)
+        .send()
+        .await?
+        .json::<TestAuthor>()
+        .await?;
+
+    assert_eq!(after_update_author.name, created_author.name);
 
     Ok(())
 }
