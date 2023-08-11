@@ -206,3 +206,18 @@ async fn should_get_all_books() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn should_get_one_book() -> Result<()> {
+    let url = format!("{BASE_URL}/books/1");
+    let book = reqwest::get(url).await?.json::<TestBook>().await?;
+
+    assert!(book.id.is_some_and(|id| id == 1));
+    assert!(book.price.is_some_and(|price| price == 0));
+    assert!(book.in_stock.is_some_and(|in_stock| in_stock));
+    assert!(book
+        .authors
+        .is_some_and(|authors| authors.len() == 1 && authors[0].name == "One Book"));
+
+    Ok(())
+}
