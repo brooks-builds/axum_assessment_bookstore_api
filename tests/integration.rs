@@ -165,3 +165,44 @@ async fn should_create_a_book() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn should_get_all_books() -> Result<()> {
+    let url = format!("{BASE_URL}/books");
+    let books = reqwest::get(url).await?.json::<Vec<TestBook>>().await?;
+    let mut seeded_books_found = 0;
+
+    for book in books {
+        match book.name.as_str() {
+            "Free Book" => {
+                seeded_books_found += 1;
+                assert!(book.price.is_some_and(|price| price == 0));
+                assert!(book.in_stock.is_some_and(|in_stock| in_stock == true));
+                assert!(book.authors.is_some_and(|authors| {
+                    authors.len() == 1 && authors[0].name == "One Book"
+                }));
+            }
+            "Expensive Book" => {
+                seeded_books_found += 1;
+                assert!(book.price.is_some_and(|price| price == 10000));
+                assert!(book.in_stock.is_some_and(|in_stock| in_stock == true));
+                assert!(book.authors.is_some_and(|authors| {
+                    authors.len() == 1 && authors[0].name == "Multiple Books"
+                }));
+            }
+            "Unavailable Book" => {
+                seeded_books_found += 1;
+                assert!(book.price.is_some_and(|price| price == 1400));
+                assert!(book.in_stock.is_some_and(|in_stock| in_stock == false));
+                assert!(book.authors.is_some_and(|authors| {
+                    authors.len() == 1 && authors[0].name == "Multiple Books"
+                }));
+            }
+            _ => {}
+        }
+    }
+
+    assert_eq!(seeded_books_found, 3);
+
+    Ok(())
+}
