@@ -22,3 +22,35 @@ async fn should_create_an_author() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn should_get_all_authors() -> Result<()> {
+    let url = format!("{BASE_URL}/authors");
+    let authors = reqwest::get(url).await?.json::<Vec<TestAuthor>>().await?;
+    let mut seeded_authors_found = 0;
+
+    for author in authors {
+        match author.name.as_str() {
+            "Unpublished" => {
+                seeded_authors_found += 1;
+                assert!(author.books.is_some_and(|books| books.is_empty()));
+            }
+            "One Book" => {
+                seeded_authors_found += 1;
+                assert!(author
+                    .books
+                    .is_some_and(|books| books.len() == 1 && books[0].name == "Free Book"));
+            }
+            "Multiple Books" => {
+                seeded_authors_found += 1;
+                assert!(author.books.is_some_and(|books| books.len() == 2
+                    && (books[0].name == "Expensive Book" || books[0].name == "Unavailable Book")));
+            }
+            _ => {}
+        }
+    }
+
+    assert_eq!(seeded_authors_found, 3);
+
+    Ok(())
+}

@@ -25,4 +25,10 @@ impl TestAuthor {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TestBook {}
+pub struct TestBook {
+    pub id: Option<i32>,
+    pub name: String,
+    pub price: Option<i32>,
+    pub in_stock: Option<bool>,
+    pub authors: Option<Vec<TestAuthor>>,
+}
