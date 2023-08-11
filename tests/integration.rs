@@ -221,3 +221,8 @@ async fn should_get_one_book() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn should_update_a_book() -> Result<()> {
+    todo!()
+}
