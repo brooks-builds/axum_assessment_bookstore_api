@@ -257,3 +257,26 @@ async fn should_update_a_book() -> Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn should_delete_a_book() -> Result<()> {
+    // create a book
+    let new_book = TestBook::new_random();
+    let url = format!("{BASE_URL}/books");
+    let client = reqwest::Client::new();
+    let response = client.post(url).json(&new_book).send().await?;
+    assert_eq!(response.status(), 201);
+    let created_book = response.json::<Book>().await?;
+    let book_id = created_book.id.unwrap();
+
+    // delete the book
+    let url = format!("{BASE_URL}/books/{book_id}");
+    let response = client.delete(&url).send().await?;
+    assert_eq!(response.status(), 204);
+
+    // verify book is deleted
+    let response = client.get(url).send().await?;
+    assert_eq!(response.status(), 404);
+
+    Ok(())
+}
