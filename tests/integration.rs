@@ -1,12 +1,12 @@
 mod models;
 
 use crate::models::TestAuthor;
+use axum_assessment_bookstore_api::models::book::Book;
 use eyre::Result;
-use migration::cli;
 use models::TestBook;
 use rand::{
     distributions::{Alphanumeric, DistString},
-    thread_rng,
+    thread_rng, Rng,
 };
 
 const BASE_URL: &str = "http://localhost:3000";
@@ -177,7 +177,7 @@ async fn should_get_all_books() -> Result<()> {
             "Free Book" => {
                 seeded_books_found += 1;
                 assert!(book.price.is_some_and(|price| price == 0));
-                assert!(book.in_stock.is_some_and(|in_stock| in_stock == true));
+                assert!(book.in_stock.is_some_and(|in_stock| in_stock));
                 assert!(book.authors.is_some_and(|authors| {
                     authors.len() == 1 && authors[0].name == "One Book"
                 }));
@@ -185,7 +185,7 @@ async fn should_get_all_books() -> Result<()> {
             "Expensive Book" => {
                 seeded_books_found += 1;
                 assert!(book.price.is_some_and(|price| price == 10000));
-                assert!(book.in_stock.is_some_and(|in_stock| in_stock == true));
+                assert!(book.in_stock.is_some_and(|in_stock| in_stock));
                 assert!(book.authors.is_some_and(|authors| {
                     authors.len() == 1 && authors[0].name == "Multiple Books"
                 }));
@@ -193,7 +193,7 @@ async fn should_get_all_books() -> Result<()> {
             "Unavailable Book" => {
                 seeded_books_found += 1;
                 assert!(book.price.is_some_and(|price| price == 1400));
-                assert!(book.in_stock.is_some_and(|in_stock| in_stock == false));
+                assert!(book.in_stock.is_some_and(|in_stock| !in_stock));
                 assert!(book.authors.is_some_and(|authors| {
                     authors.len() == 1 && authors[0].name == "Multiple Books"
                 }));
@@ -224,5 +224,36 @@ async fn should_get_one_book() -> Result<()> {
 
 #[tokio::test]
 async fn should_update_a_book() -> Result<()> {
-    todo!()
+    // create book
+    let new_book = TestBook::new_random();
+    let url = format!("{BASE_URL}/books");
+    let client = reqwest::Client::new();
+    let response = client.post(url).json(&new_book).send().await?;
+    assert_eq!(response.status(), 201);
+    let mut created_book = response.json::<Book>().await?;
+
+    // update book
+    let mut rng = thread_rng();
+    let created_book_id = created_book.id.expect("missing book id");
+    let url = format!("{BASE_URL}/books/{}", created_book_id);
+    created_book.name = Some(Alphanumeric.sample_string(&mut rng, 16));
+    created_book.id = Some(rng.gen_range(1..10000));
+    created_book.price = Some(rng.gen_range(0..100000));
+    created_book.in_stock = Some(rng.gen_bool(0.5));
+    let response = client.put(&url).json(&created_book).send().await?;
+    assert_eq!(response.status(), 204);
+
+    // verify update happened
+    let response = client.get(url).send().await?;
+    assert_eq!(response.status(), 200);
+    let updated_book = response.json::<Book>().await?;
+    assert_eq!(
+        updated_book.id.expect("missing updated book id"),
+        created_book_id
+    );
+    assert_eq!(updated_book.name, created_book.name);
+    assert_eq!(updated_book.price, created_book.price);
+    assert_eq!(updated_book.in_stock, created_book.in_stock);
+
+    Ok(())
 }
