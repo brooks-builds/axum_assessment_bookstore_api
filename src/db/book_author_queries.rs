@@ -15,7 +15,7 @@ pub async fn associate_book_with_author(
 
     book_authors.author_id = Set(book_author.author_id);
     book_authors.book_id = Set(book_author.book_id);
-    book_authors.save(db).await?;
+    book_authors.insert(db).await?;
 
     Ok(())
 }

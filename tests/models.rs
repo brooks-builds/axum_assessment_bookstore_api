@@ -24,6 +24,12 @@ impl TestAuthor {
     }
 }
 
+impl PartialEq for TestAuthor {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.name == other.name
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TestBook {
     pub id: Option<i32>,
@@ -48,4 +54,19 @@ impl TestBook {
             authors: None,
         }
     }
+}
+
+impl PartialEq for TestBook {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+            && self.name == other.name
+            && self.price == other.price
+            && self.in_stock == other.in_stock
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TestBookAuthor {
+    pub author_id: i32,
+    pub book_id: i32,
 }
