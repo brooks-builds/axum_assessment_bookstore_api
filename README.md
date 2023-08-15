@@ -78,7 +78,7 @@ To pass this assessment the following needs to be done
 ### books
 
 | PK | column name | column type |
-----------------------------------
+| -- | ----------- | ----------- |
 | *  | id          | int         |
 |    | name        | string      |
 |    | price       | int         |
@@ -88,7 +88,7 @@ To pass this assessment the following needs to be done
 ### book_authors
 
 | PK | column name | column type |
-----------------------------------
+| -- | ----------- | ----------- |
 | *  | author_id   | int         |
 | *  | book_id     | int         |
 
@@ -97,7 +97,7 @@ To pass this assessment the following needs to be done
 ### Authors
 
 | id | name           |
------------------------
+| -- | -------------- |
 | 1  | Unpublished    |
 | 2  | One Book       |
 | 3  | Multiple Books |
@@ -105,7 +105,7 @@ To pass this assessment the following needs to be done
 ### Books
 
 | id | name             | price | in_stock |
---------------------------------------------
+| -- | ---------------- | ----- | -------- |
 | 1  | Free Book        | 0     | true     |
 | 2  | Expensive Book   | 10000 | true     |
 | 3  | Unavailable Book | 1400  | false    |
@@ -113,7 +113,7 @@ To pass this assessment the following needs to be done
 ### Books Authors
 
 | author_id | book_id |
------------------------
+| --------- | ------- |
 | 2         | 1       |
 | 3         | 2       |
 | 3         | 3       |
