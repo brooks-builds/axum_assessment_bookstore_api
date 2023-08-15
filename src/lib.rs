@@ -1,18 +1,15 @@
 pub mod config;
-pub mod db;
-pub mod models;
 mod router;
-
-use std::net::SocketAddr;
 
 use config::AppConfig;
 use eyre::Result;
 use router::create_router;
+use std::net::SocketAddr;
 
 pub async fn run(config: AppConfig) -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let router = create_router(config.clone());
+    let router = create_router();
     let address = SocketAddr::from((config.address, config.port));
 
     tracing::info!("Server running on port {}", config.port);
