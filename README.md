@@ -71,7 +71,7 @@ To pass this assessment the following needs to be done
 ### authors
 
 | PK | column name | column type |
-----------------------------------
+| -- | ----------- | ----------- |
 | *  | id          | int         |
 |    | name        | string      |
 
