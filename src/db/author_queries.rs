@@ -1,9 +1,12 @@
-use crate::models::author::{Author, CreateAuthor, AtomicUpdateAuthor};
+use crate::models::author::{AtomicUpdateAuthor, Author, CreateAuthor};
+use entity::authors::ActiveModel as ActiveAuthorModel;
 use entity::authors::Entity as AuthorEntity;
 use entity::books::Entity as BookEntity;
 use eyre::Result;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, TryIntoModel, IntoActiveModel, ModelTrait};
-use entity::authors::ActiveModel as ActiveAuthorModel;
+use sea_orm::{
+    ActiveModelTrait, DatabaseConnection, EntityTrait, IntoActiveModel, ModelTrait, Set,
+    TryIntoModel,
+};
 
 pub async fn insert_author(db: &DatabaseConnection, author: CreateAuthor) -> Result<Author> {
     let new_author = ActiveAuthorModel {
@@ -39,9 +42,13 @@ pub async fn get_all_authors(db: &DatabaseConnection) -> Result<Vec<Author>> {
     Ok(authors)
 }
 
-pub async fn update_author(db: &DatabaseConnection, id: i32, author: AtomicUpdateAuthor) -> Result<()> {
+pub async fn update_author(
+    db: &DatabaseConnection,
+    id: i32,
+    author: AtomicUpdateAuthor,
+) -> Result<()> {
     let Some(db_author) = AuthorEntity::find_by_id(id).one(db).await? else {
-        return Ok(()); 
+        return Ok(())
     };
     let mut db_author = db_author.into_active_model();
 
@@ -55,8 +62,8 @@ pub async fn delete_author(db: &DatabaseConnection, id: i32) -> Result<()> {
     let Some(author) = AuthorEntity::find_by_id(id).one(db).await? else {
         return Ok(());
     };
-    
+
     author.delete(db).await?;
-    
+
     Ok(())
 }
